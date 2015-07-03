@@ -48,7 +48,11 @@ module Octopus::Model
 
     def hijack_connection()
       def self.should_use_normal_connection?
-        !Octopus.enabled? || self.custom_octopus_connection
+        if !Octopus.enabled?
+          true
+        elsif custom_octopus_connection
+          !connection_proxy.block
+        end
       end
 
       def self.connection_proxy
@@ -90,7 +94,7 @@ module Octopus::Model
     end
 
     def should_set_current_shard?
-      self.respond_to?(:current_shard) && !self.current_shard.nil?
+      !self.class.connection_proxy.block && self.respond_to?(:current_shard) && !self.current_shard.nil?
     end
 
     def reload_connection_safe(&block)
